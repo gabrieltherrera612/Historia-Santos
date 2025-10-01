@@ -70,7 +70,11 @@
 
   #detalle-seleccion h3 { margin-top: 0; }
 
-  #detalle-content { text-align: justify; }
+  #detalle-content {
+    text-align: justify;
+    font-size: 16px; /* antes estaba por defecto, ahora más grande */
+    line-height: 1.6; /* para mejorar lectura */
+  }
 
   #detalle-content img {
     float: left;
@@ -208,7 +212,7 @@ timeline.on("select", function(props) {
     // Combinar imagen + contenido + fuente
     let contenidoHTML = `<img src="${item.img}" alt="${item.title}">${item.content}`;
     if(item.fuente){
-      contenidoHTML += `<p><strong>Fuente:</strong> ${item.fuente}</p>`;
+      contenidoHTML += `<p><strong>Fuente:</strong> <a href="${item.fuente}" target="_blank">${item.fuente}</a></p>`;
     }
     document.getElementById("detalle-content").innerHTML = contenidoHTML;
 
