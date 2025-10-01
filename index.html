@@ -19,12 +19,12 @@
   #titulo-timeline {
     text-align: center;
     font-family: 'Dancing Script', cursive;
-    font-size: 24px;
+    font-size: 28px; /* un poco más grande */
     font-weight: normal;
     margin: 20px 0;
     color: #333;
     background: rgba(135,206,250,0.3);
-    padding: 10px;
+    padding: 12px;
     border-radius: 10px;
   }
 
@@ -32,7 +32,7 @@
   #panel-superior {
     display: flex;
     gap: 10px;
-    padding: 10px;
+    padding: 12px;
     background: #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     align-items: center;
@@ -41,78 +41,92 @@
 
   #filtros {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-shrink: 0;
+    font-size: 16px; /* texto más grande para los filtros */
   }
 
   #filtros label { font-weight: bold; }
 
   #buscador {
     flex: 1;
-    max-width: 300px;
-    padding: 5px;
-    border-radius: 5px;
+    max-width: 400px; /* más ancho */
+    padding: 8px;
+    font-size: 16px; /* más grande */
+    border-radius: 6px;
     border: 1px solid #ccc;
   }
 
   /* Timeline */
-  #timeline { margin: 10px; height: 250px; }
-
-  /* Estilo texto de los eventos dentro del timeline */
-  .evento span {
-    font-size: 16px; /* tamaño más grande para mejor lectura */
-    font-weight: bold;
-  }
-
-  /* Detalle evento + imagen combinada */
-  #detalle-seleccion {
+  #timeline {
     margin: 10px;
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    display: none;
+    height: auto;
+    min-height: 350px; /* box más grande */
   }
 
-  #detalle-seleccion h3 { margin-top: 0; }
-
-  #detalle-content {
-    text-align: justify;
-    font-size: 20px;   /* tamaño ligeramente mayor que por defecto */
-    line-height: 1.6;  /* más espaciado entre líneas */
-}
-
-  #detalle-content img {
-    float: left;
-    width: 150px;
-    margin-right: 15px;
-    margin-bottom: 10px;
-    border-radius: 10px;
+  .evento {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  #detalle-qr { margin-top: 15px; clear: both; }
-
-  .evento { display: flex; align-items: center; gap: 5px; }
   .evento img {
-    width: 30px;  
-    height: 30px;
+    width: 35px;  
+    height: 35px;
     object-fit: cover;
     border-radius: 50%;
     border: 2px solid #ccc;
+  }
+
+  .evento span {
+    font-size: 20px; /* texto más grande */
+    font-weight: bold;
   }
 
   .evento.Jesus { color: #d9534f; font-weight: bold; }
   .evento.Virgen { color: #337ab7; }
   .evento.Santo { color: #5cb85c; }
 
+  /* Detalle evento + imagen combinada */
+  #detalle-seleccion {
+    margin: 10px;
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: none;
+    font-size: 18px; /* texto más grande en el detalle */
+  }
+
+  #detalle-seleccion h3 {
+    margin-top: 0;
+    font-size: 24px; /* título más grande */
+  }
+
+  #detalle-content { text-align: justify; }
+
+  #detalle-content img {
+    float: left;
+    width: 180px; /* imagen más grande */
+    margin-right: 18px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+
+  #detalle-qr { margin-top: 20px; clear: both; }
+
   @media (max-width: 768px) {
     #detalle-content img {
       float: none;
       display: block;
-      width: 80%;
+      width: 90%;
       margin: 0 auto 15px auto;
     }
-    #buscador { max-width: 100%; }
+    #buscador { max-width: 100%; font-size: 16px; padding: 8px; }
+    #filtros { font-size: 14px; gap: 8px; }
+    .evento span { font-size: 18px; }
+    #detalle-seleccion { font-size: 16px; padding: 20px; }
+    #detalle-seleccion h3 { font-size: 20px; }
   }
 </style>
 </head>
@@ -147,6 +161,7 @@ const options = {
   start: new Date(1000,0,1),
   end: new Date(2000,11,31),
   editable: false,
+  autoResize: true,
   template: function(item) {
     return `<div class="evento ${item.categoria}">
         <img src="${item.img}" alt="${item.title}" />
@@ -185,7 +200,6 @@ function renderizar() {
   }
 }
 
-// Cargar datos
 fetch("eventos.json")
   .then(res => res.json())
   .then(data => {
@@ -215,14 +229,12 @@ timeline.on("select", function(props) {
     document.getElementById("detalle-title").textContent = item.title;
     document.getElementById("detalle-fecha").textContent = item.start;
 
-    // Combinar imagen + contenido + fuente
     let contenidoHTML = `<img src="${item.img}" alt="${item.title}">${item.content}`;
     if(item.fuente){
       contenidoHTML += `<p><strong>Fuente:</strong> <a href="${item.fuente}" target="_blank">${item.fuente}</a></p>`;
     }
     document.getElementById("detalle-content").innerHTML = contenidoHTML;
 
-    // QR con hash
     const qrDiv = document.getElementById("detalle-qr");
     qrDiv.innerHTML = "";
     const qrURL = `https://gabrieltherrera612.github.io/Historia-Santos/#${limpiarTexto(item.title).replace(/\s+/g,'-')}`;
