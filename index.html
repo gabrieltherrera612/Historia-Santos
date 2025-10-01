@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Timeline de Apariciones y Santos</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f6fa;
+  }
+
+  #titulo-timeline {
+    text-align: center;
+    font-family: 'Dancing Script', cursive;
+    font-size: 24px; /* más pequeño que antes */
+    font-weight: normal; /* opcional, para más elegante */
+    margin: 20px 0;
+    color: #333;
+  }
+
+
+  /* BLOQUE 1: Filtros + buscador */
+  #panel-superior {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  #filtros {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  #filtros label {
+    font-weight: bold;
+  }
+
+  #buscador {
+    flex: 1;
+    max-width: 300px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+
+  /* BLOQUE 2: Timeline */
+  #titulo-timeline {
+      text-align: center;
+      font-size: 20px;       /* más pequeño */
+      font-style: italic;     /* cursiva */
+      font-weight: bold;
+      margin: 20px 0;
+      color: #333;
+  }
+
+
+  /* BLOQUE 3: Detalle evento */
+  #detalle-seleccion {
+    margin: 10px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: none;
+  }
+
+  #detalle-seleccion h3 {
+    margin-top: 0;
+  }
+
+  #detalle-content {
+    text-align: justify;
+  }
+
+  #detalle-content img {
+    float: left;
+    width: 150px;
+    margin-right: 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  #detalle-qr {
+    margin-top: 15px;
+    clear: both;
+  }
+
+  /* Estilo de eventos en timeline */
+  .evento {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .evento img {
+    width: 30px;  
+    height: 30px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+  }
+
+  .evento.Jesus { color: #d9534f; font-weight: bold; }
+  .evento.Virgen { color: #337ab7; }
+  .evento.Santo { color: #5cb85c; }
+
+  /* Responsivo */
+  @media (max-width: 768px) {
+    #detalle-content img {
+      float: none;
+      display: block;
+      width: 80%;
+      margin: 0 auto 15px auto;
+    }
+
+    #buscador {
+      max-width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Título -->
+<div id="titulo-timeline">LINEA DE TIEMPO</div>
+
+<!-- BLOQUE 1: Buscador + filtros -->
+<div id="panel-superior">
+  <div id="filtros">
+    <label><input type="checkbox" id="filtro-jesus" checked> Jesus</label>
+    <label><input type="checkbox" id="filtro-virgen" checked> Virgen</label>
+    <label><input type="checkbox" id="filtro-santo" checked> Santo</label>
+  </div>
+  <input type="text" id="buscador" placeholder="Buscar... (ej: francis, asis, guadalupe)" />
+</div>
+
+<!-- BLOQUE 2: Timeline -->
+<div id="timeline"></div>
+
+<!-- BLOQUE 3: Detalle evento + imagen combinada -->
+<div id="detalle-seleccion">
+  <h3 id="detalle-title"></h3>
+  <p id="detalle-fecha"></p>
+  <div id="detalle-content"></div>
+  <div id="detalle-qr"></div>
+</div>
+
+<script>
+const container = document.getElementById("timeline");
+const dataset = new vis.DataSet([]);
+let allData = [];
+
+const options = {
+  start: new Date(1000,0,1),
+  end: new Date(2000,11,31),
+  editable: false,
+  template: function(item) {
+    return `
+      <div class="evento ${item.categoria}">
+        <img src="${item.img}" alt="${item.title}" />
+        <span>${item.title}</span>
+      </div>
+    `;
+  },
+  tooltip: { followMouse: true }
+};
+
+const timeline = new vis.Timeline(container, dataset, options);
+
+// Función para normalizar texto y quitar tildes
+function limpiarTexto(texto) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+// Función para renderizar timeline con filtros y búsqueda
+function renderizar() {
+  const jesus = document.getElementById("filtro-jesus").checked;
+  const virgen = document.getElementById("filtro-virgen").checked;
+  const santo = document.getElementById("filtro-santo").checked;
+  const busqueda = limpiarTexto(document.getElementById("buscador").value);
+
+  const itemsFiltrados = allData.filter(item => {
+    const categoriaOK = (item.categoria === "Jesus" && jesus) ||
+                        (item.categoria === "Virgen" && virgen) ||
+                        (item.categoria === "Santo" && santo);
+    const textoOK = limpiarTexto(item.title).includes(busqueda); // filtro solo sobre nombre
+    return categoriaOK && textoOK;
+  });
+
+  dataset.clear();
+  dataset.add(itemsFiltrados);
+
+  // Centrar timeline en el primer resultado
+  if(itemsFiltrados.length > 0){
+    timeline.focus(itemsFiltrados[0].id, { animation: { duration: 500 } });
+    timeline.setSelection(itemsFiltrados[0].id);
+  }
+}
+
+// Cargar datos
+fetch("eventos.json")
+  .then(res => res.json())
+  .then(data => {
+    allData = data;
+    dataset.add(allData);
+  })
+  .catch(err => console.error("Error cargando eventos:", err));
+
+// Eventos
+document.getElementById("filtro-jesus").addEventListener("change", renderizar);
+document.getElementById("filtro-virgen").addEventListener("change", renderizar);
+document.getElementById("filtro-santo").addEventListener("change", renderizar);
+document.getElementById("buscador").addEventListener("input", renderizar);
+
+// Mostrar detalle al seleccionar
+timeline.on("select", function(props) {
+  if (props.items.length > 0) {
+    const item = dataset.get(props.items[0]);
+
+    document.getElementById("detalle-seleccion").style.display = "block";
+    document.getElementById("detalle-title").textContent = item.title;
+    document.getElementById("detalle-fecha").textContent = item.start;
+
+    // Combinar imagen al inicio del contenido
+    const contenidoHTML = `<img src="${item.img}" alt="${item.title}">${item.content}`;
+    document.getElementById("detalle-content").innerHTML = contenidoHTML;
+
+    const qrDiv = document.getElementById("detalle-qr");
+    qrDiv.innerHTML = "";
+    if(item.qrLink){
+      new QRCode(qrDiv, {
+        text: item.qrLink,
+        width: 120,
+        height: 120
+      });
+    }
+  }
+});
+</script>
+
+</body>
+</html>
