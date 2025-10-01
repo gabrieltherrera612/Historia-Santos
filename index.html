@@ -58,6 +58,12 @@
   /* Timeline */
   #timeline { margin: 10px; height: 250px; }
 
+  /* Estilo texto de los eventos dentro del timeline */
+  .evento span {
+    font-size: 16px; /* tamaño más grande para mejor lectura */
+    font-weight: bold;
+  }
+
   /* Detalle evento + imagen combinada */
   #detalle-seleccion {
     margin: 10px;
@@ -70,11 +76,7 @@
 
   #detalle-seleccion h3 { margin-top: 0; }
 
-  #detalle-content {
-    text-align: justify;
-    font-size: 20px; /* antes estaba por defecto, ahora más grande */
-    line-height: 1.9; /* para mejorar lectura */
-  }
+  #detalle-content { text-align: justify; }
 
   #detalle-content img {
     float: left;
