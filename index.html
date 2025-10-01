@@ -19,20 +19,20 @@
   #titulo-timeline {
     text-align: center;
     font-family: 'Dancing Script', cursive;
-    font-size: 30px; /* más grande */
+    font-size: 24px;
     font-weight: normal;
     margin: 20px 0;
     color: #333;
     background: rgba(135,206,250,0.3);
-    padding: 12px;
+    padding: 10px;
     border-radius: 10px;
   }
 
   /* BLOQUE 1: Filtros + buscador */
   #panel-superior {
     display: flex;
-    gap: 12px;
-    padding: 12px;
+    gap: 10px;
+    padding: 10px;
     background: #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     align-items: center;
@@ -41,92 +41,77 @@
 
   #filtros {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-shrink: 0;
-    font-size: 18px; /* texto más grande */
   }
 
   #filtros label { font-weight: bold; }
 
   #buscador {
     flex: 1;
-    max-width: 450px; /* más ancho */
+    max-width: 300px;
     padding: 10px;
-    font-size: 18px; /* más grande */
-    border-radius: 6px;
+    font-size: 16px; /* letra más grande */
+    border-radius: 5px;
     border: 1px solid #ccc;
   }
 
   /* Timeline */
-  #timeline {
+  #timeline { 
+    margin: 10px; 
+    height: 300px; /* timeline más alto */
+    font-size: 16px; /* texto más grande */
+  }
+
+  /* Detalle evento + imagen combinada */
+  #detalle-seleccion {
     margin: 10px;
-    height: auto;
-    min-height: 400px; /* box más grande */
+    background: #fff;
+    padding: 25px; /* más espacio */
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: none;
   }
 
-  .evento {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  #detalle-seleccion h3 { margin-top: 0; font-size: 24px; }
+
+  #detalle-content { 
+    text-align: justify; 
+    font-size: 16px; /* texto más grande */
   }
 
+  #detalle-content img {
+    float: left;
+    width: 150px;
+    margin-right: 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  #detalle-qr { margin-top: 15px; clear: both; }
+
+  .evento { display: flex; align-items: center; gap: 5px; font-size: 16px; } /* más grande en timeline */
   .evento img {
-    width: 40px;  
-    height: 40px;
+    width: 35px;  
+    height: 35px;
     object-fit: cover;
     border-radius: 50%;
     border: 2px solid #ccc;
-  }
-
-  .evento span {
-    font-size: 22px; /* texto más grande */
-    font-weight: bold;
   }
 
   .evento.Jesus { color: #d9534f; font-weight: bold; }
   .evento.Virgen { color: #337ab7; }
   .evento.Santo { color: #5cb85c; }
 
-  /* Detalle evento + imagen combinada */
-  #detalle-seleccion {
-    margin: 10px;
-    background: #fff;
-    padding: 28px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    display: none;
-    font-size: 20px; /* más grande */
-  }
-
-  #detalle-seleccion h3 {
-    margin-top: 0;
-    font-size: 26px; /* título más grande */
-  }
-
-  #detalle-content { text-align: justify; }
-
-  #detalle-content img {
-    float: left;
-    width: 200px; /* imagen más grande */
-    margin-right: 20px;
-    margin-bottom: 12px;
-    border-radius: 10px;
-  }
-
-  #detalle-qr { margin-top: 22px; clear: both; }
-
   @media (max-width: 768px) {
     #detalle-content img {
       float: none;
       display: block;
-      width: 90%;
+      width: 80%;
       margin: 0 auto 15px auto;
     }
-    #buscador { max-width: 100%; font-size: 18px; padding: 10px; }
-    #filtros { font-size: 16px; gap: 10px; }
-    .evento span { font-size: 20px; }
-    #detalle-seleccion { font-size: 18px; padding: 22px; }
-    #detalle-seleccion h3 { font-size: 22px; }
+    #buscador { max-width: 100%; font-size: 16px; padding: 10px; }
+    #timeline { height: 250px; font-size: 16px; }
   }
 </style>
 </head>
@@ -161,7 +146,6 @@ const options = {
   start: new Date(1000,0,1),
   end: new Date(2000,11,31),
   editable: false,
-  autoResize: true,
   template: function(item) {
     return `<div class="evento ${item.categoria}">
         <img src="${item.img}" alt="${item.title}" />
@@ -198,11 +182,9 @@ function renderizar() {
     timeline.focus(itemsFiltrados[0].id, { animation: { duration: 500 } });
     timeline.setSelection(itemsFiltrados[0].id);
   }
-
-  // cerrar teclado si estaba activo
-  document.getElementById("buscador").blur();
 }
 
+// Cargar datos
 fetch("eventos.json")
   .then(res => res.json())
   .then(data => {
@@ -215,7 +197,6 @@ fetch("eventos.json")
       if(itemHash){
         timeline.focus(itemHash.id, { animation: { duration: 500 } });
         timeline.setSelection(itemHash.id);
-        document.getElementById("buscador").blur(); // cerrar teclado si abre con hash
       }
     }
   })
@@ -233,18 +214,20 @@ timeline.on("select", function(props) {
     document.getElementById("detalle-title").textContent = item.title;
     document.getElementById("detalle-fecha").textContent = item.start;
 
+    // Combinar imagen + contenido + fuente
     let contenidoHTML = `<img src="${item.img}" alt="${item.title}">${item.content}`;
     if(item.fuente){
       contenidoHTML += `<p><strong>Fuente:</strong> <a href="${item.fuente}" target="_blank">${item.fuente}</a></p>`;
     }
     document.getElementById("detalle-content").innerHTML = contenidoHTML;
 
+    // QR con hash
     const qrDiv = document.getElementById("detalle-qr");
     qrDiv.innerHTML = "";
     const qrURL = `https://gabrieltherrera612.github.io/Historia-Santos/#${limpiarTexto(item.title).replace(/\s+/g,'-')}`;
     new QRCode(qrDiv, { text: qrURL, width: 120, height: 120 });
 
-    // cerrar teclado al seleccionar
+    // Ocultar teclado en móviles al seleccionar santo
     document.getElementById("buscador").blur();
   }
 });
