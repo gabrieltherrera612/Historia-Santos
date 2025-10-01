@@ -19,20 +19,20 @@
   #titulo-timeline {
     text-align: center;
     font-family: 'Dancing Script', cursive;
-    font-size: 24px;
+    font-size: 28px; /* un poco más grande */
     font-weight: normal;
     margin: 20px 0;
     color: #333;
     background: rgba(135,206,250,0.3);
-    padding: 10px;
+    padding: 12px;
     border-radius: 10px;
   }
 
   /* BLOQUE 1: Filtros + buscador */
   #panel-superior {
     display: flex;
-    gap: 10px;
-    padding: 10px;
+    gap: 15px;
+    padding: 15px;
     background: #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     align-items: center;
@@ -41,48 +41,52 @@
 
   #filtros {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     flex-shrink: 0;
+    font-size: 18px; /* tamaño letra aumentado */
   }
 
-  #filtros label { font-weight: bold; }
+  #filtros input[type="checkbox"] {
+    width: 20px; /* box más grande */
+    height: 20px;
+  }
 
   #buscador {
     flex: 1;
-    max-width: 300px;
-    padding: 10px;
-    font-size: 16px; /* letra más grande */
-    border-radius: 5px;
+    max-width: 450px;
+    padding: 12px; /* box más grande */
+    font-size: 18px; /* letra más grande */
+    border-radius: 6px;
     border: 1px solid #ccc;
   }
 
   /* Timeline */
   #timeline { 
     margin: 10px; 
-    height: 300px; /* timeline más alto */
-    font-size: 16px; /* texto más grande */
+    height: 320px; /* timeline más alto */
+    font-size: 18px; /* texto más grande */
   }
 
   /* Detalle evento + imagen combinada */
   #detalle-seleccion {
     margin: 10px;
     background: #fff;
-    padding: 25px; /* más espacio */
+    padding: 30px; /* más espacio */
     border-radius: 10px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     display: none;
   }
 
-  #detalle-seleccion h3 { margin-top: 0; font-size: 24px; }
+  #detalle-seleccion h3 { margin-top: 0; font-size: 26px; }
 
   #detalle-content { 
     text-align: justify; 
-    font-size: 16px; /* texto más grande */
+    font-size: 18px; /* texto más grande */
   }
 
   #detalle-content img {
     float: left;
-    width: 150px;
+    width: 160px;
     margin-right: 15px;
     margin-bottom: 10px;
     border-radius: 10px;
@@ -90,10 +94,10 @@
 
   #detalle-qr { margin-top: 15px; clear: both; }
 
-  .evento { display: flex; align-items: center; gap: 5px; font-size: 16px; } /* más grande en timeline */
+  .evento { display: flex; align-items: center; gap: 5px; font-size: 18px; } /* más grande en timeline */
   .evento img {
-    width: 35px;  
-    height: 35px;
+    width: 40px;  
+    height: 40px;
     object-fit: cover;
     border-radius: 50%;
     border: 2px solid #ccc;
@@ -110,8 +114,8 @@
       width: 80%;
       margin: 0 auto 15px auto;
     }
-    #buscador { max-width: 100%; font-size: 16px; padding: 10px; }
-    #timeline { height: 250px; font-size: 16px; }
+    #buscador { max-width: 100%; font-size: 18px; padding: 12px; }
+    #timeline { height: 250px; font-size: 18px; }
   }
 </style>
 </head>
@@ -221,11 +225,11 @@ timeline.on("select", function(props) {
     }
     document.getElementById("detalle-content").innerHTML = contenidoHTML;
 
-    // QR con hash
+    // QR con hash y mayor tamaño
     const qrDiv = document.getElementById("detalle-qr");
     qrDiv.innerHTML = "";
     const qrURL = `https://gabrieltherrera612.github.io/Historia-Santos/#${limpiarTexto(item.title).replace(/\s+/g,'-')}`;
-    new QRCode(qrDiv, { text: qrURL, width: 120, height: 120 });
+    new QRCode(qrDiv, { text: qrURL, width: 180, height: 180 }); // más grande para mejor calidad
 
     // Ocultar teclado en móviles al seleccionar santo
     document.getElementById("buscador").blur();
