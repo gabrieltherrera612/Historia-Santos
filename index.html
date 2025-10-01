@@ -15,15 +15,18 @@
     background: #f5f6fa;
   }
 
+  /* Titulo */
   #titulo-timeline {
     text-align: center;
     font-family: 'Dancing Script', cursive;
-    font-size: 24px; /* más pequeño que antes */
-    font-weight: normal; /* opcional, para más elegante */
+    font-size: 24px;
+    font-weight: normal;
     margin: 20px 0;
     color: #333;
+    background: rgba(135,206,250,0.3);
+    padding: 10px;
+    border-radius: 10px;
   }
-
 
   /* BLOQUE 1: Filtros + buscador */
   #panel-superior {
@@ -42,9 +45,7 @@
     flex-shrink: 0;
   }
 
-  #filtros label {
-    font-weight: bold;
-  }
+  #filtros label { font-weight: bold; }
 
   #buscador {
     flex: 1;
@@ -54,18 +55,10 @@
     border: 1px solid #ccc;
   }
 
-  /* BLOQUE 2: Timeline */
-  #titulo-timeline {
-      text-align: center;
-      font-size: 20px;       /* más pequeño */
-      font-style: italic;     /* cursiva */
-      font-weight: bold;
-      margin: 20px 0;
-      color: #333;
-  }
+  /* Timeline */
+  #timeline { margin: 10px; height: 250px; }
 
-
-  /* BLOQUE 3: Detalle evento */
+  /* Detalle evento + imagen combinada */
   #detalle-seleccion {
     margin: 10px;
     background: #fff;
@@ -75,13 +68,9 @@
     display: none;
   }
 
-  #detalle-seleccion h3 {
-    margin-top: 0;
-  }
+  #detalle-seleccion h3 { margin-top: 0; }
 
-  #detalle-content {
-    text-align: justify;
-  }
+  #detalle-content { text-align: justify; }
 
   #detalle-content img {
     float: left;
@@ -91,18 +80,9 @@
     border-radius: 10px;
   }
 
-  #detalle-qr {
-    margin-top: 15px;
-    clear: both;
-  }
+  #detalle-qr { margin-top: 15px; clear: both; }
 
-  /* Estilo de eventos en timeline */
-  .evento {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
+  .evento { display: flex; align-items: center; gap: 5px; }
   .evento img {
     width: 30px;  
     height: 30px;
@@ -115,7 +95,6 @@
   .evento.Virgen { color: #337ab7; }
   .evento.Santo { color: #5cb85c; }
 
-  /* Responsivo */
   @media (max-width: 768px) {
     #detalle-content img {
       float: none;
@@ -123,19 +102,14 @@
       width: 80%;
       margin: 0 auto 15px auto;
     }
-
-    #buscador {
-      max-width: 100%;
-    }
+    #buscador { max-width: 100%; }
   }
 </style>
 </head>
 <body>
 
-<!-- Título -->
 <div id="titulo-timeline">LINEA DE TIEMPO</div>
 
-<!-- BLOQUE 1: Buscador + filtros -->
 <div id="panel-superior">
   <div id="filtros">
     <label><input type="checkbox" id="filtro-jesus" checked> Jesus</label>
@@ -145,10 +119,8 @@
   <input type="text" id="buscador" placeholder="Buscar... (ej: francis, asis, guadalupe)" />
 </div>
 
-<!-- BLOQUE 2: Timeline -->
 <div id="timeline"></div>
 
-<!-- BLOQUE 3: Detalle evento + imagen combinada -->
 <div id="detalle-seleccion">
   <h3 id="detalle-title"></h3>
   <p id="detalle-fecha"></p>
@@ -166,24 +138,20 @@ const options = {
   end: new Date(2000,11,31),
   editable: false,
   template: function(item) {
-    return `
-      <div class="evento ${item.categoria}">
+    return `<div class="evento ${item.categoria}">
         <img src="${item.img}" alt="${item.title}" />
         <span>${item.title}</span>
-      </div>
-    `;
+      </div>`;
   },
   tooltip: { followMouse: true }
 };
 
 const timeline = new vis.Timeline(container, dataset, options);
 
-// Función para normalizar texto y quitar tildes
 function limpiarTexto(texto) {
   return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
-// Función para renderizar timeline con filtros y búsqueda
 function renderizar() {
   const jesus = document.getElementById("filtro-jesus").checked;
   const virgen = document.getElementById("filtro-virgen").checked;
@@ -194,14 +162,13 @@ function renderizar() {
     const categoriaOK = (item.categoria === "Jesus" && jesus) ||
                         (item.categoria === "Virgen" && virgen) ||
                         (item.categoria === "Santo" && santo);
-    const textoOK = limpiarTexto(item.title).includes(busqueda); // filtro solo sobre nombre
+    const textoOK = limpiarTexto(item.title).includes(busqueda);
     return categoriaOK && textoOK;
   });
 
   dataset.clear();
   dataset.add(itemsFiltrados);
 
-  // Centrar timeline en el primer resultado
   if(itemsFiltrados.length > 0){
     timeline.focus(itemsFiltrados[0].id, { animation: { duration: 500 } });
     timeline.setSelection(itemsFiltrados[0].id);
@@ -214,37 +181,42 @@ fetch("eventos.json")
   .then(data => {
     allData = data;
     dataset.add(allData);
+
+    const hash = window.location.hash.substr(1);
+    if(hash){
+      const itemHash = allData.find(i => limpiarTexto(i.title).replace(/\s+/g,'-') === hash);
+      if(itemHash){
+        timeline.focus(itemHash.id, { animation: { duration: 500 } });
+        timeline.setSelection(itemHash.id);
+      }
+    }
   })
   .catch(err => console.error("Error cargando eventos:", err));
 
-// Eventos
 document.getElementById("filtro-jesus").addEventListener("change", renderizar);
 document.getElementById("filtro-virgen").addEventListener("change", renderizar);
 document.getElementById("filtro-santo").addEventListener("change", renderizar);
 document.getElementById("buscador").addEventListener("input", renderizar);
 
-// Mostrar detalle al seleccionar
 timeline.on("select", function(props) {
   if (props.items.length > 0) {
     const item = dataset.get(props.items[0]);
-
     document.getElementById("detalle-seleccion").style.display = "block";
     document.getElementById("detalle-title").textContent = item.title;
     document.getElementById("detalle-fecha").textContent = item.start;
 
-    // Combinar imagen al inicio del contenido
-    const contenidoHTML = `<img src="${item.img}" alt="${item.title}">${item.content}`;
+    // Combinar imagen + contenido + fuente
+    let contenidoHTML = `<img src="${item.img}" alt="${item.title}">${item.content}`;
+    if(item.fuente){
+      contenidoHTML += `<p><strong>Fuente:</strong> ${item.fuente}</p>`;
+    }
     document.getElementById("detalle-content").innerHTML = contenidoHTML;
 
+    // QR con hash
     const qrDiv = document.getElementById("detalle-qr");
     qrDiv.innerHTML = "";
-    if(item.qrLink){
-      new QRCode(qrDiv, {
-        text: item.qrLink,
-        width: 120,
-        height: 120
-      });
-    }
+    const qrURL = `https://gabrieltherrera612.github.io/Historia-Santos/#${limpiarTexto(item.title).replace(/\s+/g,'-')}`;
+    new QRCode(qrDiv, { text: qrURL, width: 120, height: 120 });
   }
 });
 </script>
