@@ -19,7 +19,7 @@
   #titulo-timeline {
     text-align: center;
     font-family: 'Dancing Script', cursive;
-    font-size: 28px; /* un poco más grande */
+    font-size: 30px; /* más grande */
     font-weight: normal;
     margin: 20px 0;
     color: #333;
@@ -31,7 +31,7 @@
   /* BLOQUE 1: Filtros + buscador */
   #panel-superior {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     padding: 12px;
     background: #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
@@ -43,16 +43,16 @@
     display: flex;
     gap: 12px;
     flex-shrink: 0;
-    font-size: 16px; /* texto más grande para los filtros */
+    font-size: 18px; /* texto más grande */
   }
 
   #filtros label { font-weight: bold; }
 
   #buscador {
     flex: 1;
-    max-width: 400px; /* más ancho */
-    padding: 8px;
-    font-size: 16px; /* más grande */
+    max-width: 450px; /* más ancho */
+    padding: 10px;
+    font-size: 18px; /* más grande */
     border-radius: 6px;
     border: 1px solid #ccc;
   }
@@ -61,25 +61,25 @@
   #timeline {
     margin: 10px;
     height: auto;
-    min-height: 350px; /* box más grande */
+    min-height: 400px; /* box más grande */
   }
 
   .evento {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 
   .evento img {
-    width: 35px;  
-    height: 35px;
+    width: 40px;  
+    height: 40px;
     object-fit: cover;
     border-radius: 50%;
     border: 2px solid #ccc;
   }
 
   .evento span {
-    font-size: 20px; /* texto más grande */
+    font-size: 22px; /* texto más grande */
     font-weight: bold;
   }
 
@@ -91,29 +91,29 @@
   #detalle-seleccion {
     margin: 10px;
     background: #fff;
-    padding: 25px;
+    padding: 28px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     display: none;
-    font-size: 18px; /* texto más grande en el detalle */
+    font-size: 20px; /* más grande */
   }
 
   #detalle-seleccion h3 {
     margin-top: 0;
-    font-size: 24px; /* título más grande */
+    font-size: 26px; /* título más grande */
   }
 
   #detalle-content { text-align: justify; }
 
   #detalle-content img {
     float: left;
-    width: 180px; /* imagen más grande */
-    margin-right: 18px;
+    width: 200px; /* imagen más grande */
+    margin-right: 20px;
     margin-bottom: 12px;
     border-radius: 10px;
   }
 
-  #detalle-qr { margin-top: 20px; clear: both; }
+  #detalle-qr { margin-top: 22px; clear: both; }
 
   @media (max-width: 768px) {
     #detalle-content img {
@@ -122,11 +122,11 @@
       width: 90%;
       margin: 0 auto 15px auto;
     }
-    #buscador { max-width: 100%; font-size: 16px; padding: 8px; }
-    #filtros { font-size: 14px; gap: 8px; }
-    .evento span { font-size: 18px; }
-    #detalle-seleccion { font-size: 16px; padding: 20px; }
-    #detalle-seleccion h3 { font-size: 20px; }
+    #buscador { max-width: 100%; font-size: 18px; padding: 10px; }
+    #filtros { font-size: 16px; gap: 10px; }
+    .evento span { font-size: 20px; }
+    #detalle-seleccion { font-size: 18px; padding: 22px; }
+    #detalle-seleccion h3 { font-size: 22px; }
   }
 </style>
 </head>
@@ -198,6 +198,9 @@ function renderizar() {
     timeline.focus(itemsFiltrados[0].id, { animation: { duration: 500 } });
     timeline.setSelection(itemsFiltrados[0].id);
   }
+
+  // cerrar teclado si estaba activo
+  document.getElementById("buscador").blur();
 }
 
 fetch("eventos.json")
@@ -212,6 +215,7 @@ fetch("eventos.json")
       if(itemHash){
         timeline.focus(itemHash.id, { animation: { duration: 500 } });
         timeline.setSelection(itemHash.id);
+        document.getElementById("buscador").blur(); // cerrar teclado si abre con hash
       }
     }
   })
@@ -239,6 +243,9 @@ timeline.on("select", function(props) {
     qrDiv.innerHTML = "";
     const qrURL = `https://gabrieltherrera612.github.io/Historia-Santos/#${limpiarTexto(item.title).replace(/\s+/g,'-')}`;
     new QRCode(qrDiv, { text: qrURL, width: 120, height: 120 });
+
+    // cerrar teclado al seleccionar
+    document.getElementById("buscador").blur();
   }
 });
 </script>
