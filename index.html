@@ -61,8 +61,8 @@
   }
 
   /* Timeline */
-  #timeline { 
-    margin: 10px; 
+  #timeline {
+    margin: 10px;
     height: 320px; /* timeline más alto */
     font-size: 18px; /* texto más grande */
   }
@@ -79,8 +79,8 @@
 
   #detalle-seleccion h3 { margin-top: 0; font-size: 26px; }
 
-  #detalle-content { 
-    text-align: justify; 
+  #detalle-content {
+    text-align: justify;
     font-size: 18px; /* texto más grande */
   }
 
@@ -96,7 +96,7 @@
 
   .evento { display: flex; align-items: center; gap: 5px; font-size: 18px; } /* más grande en timeline */
   .evento img {
-    width: 40px;  
+    width: 40px;
     height: 40px;
     object-fit: cover;
     border-radius: 50%;
@@ -142,128 +142,143 @@
 </div>
 
 <script>
-const container = document.getElementById("timeline");
-const dataset = new vis.DataSet([]);
-let allData = [];
+  const container = document.getElementById("timeline");
+  const dataset = new vis.DataSet([]);
+  let allData = [];
 
-const options = {
-  start: new Date(1000,0,1),
-  end: new Date(2000,11,31),
-  editable: false,
-  template: function(item) {
-    return `<div class="evento ${item.categoria}">
-        <img src="${item.img}" alt="${item.title}" />
-        <span>${item.title}</span>
-      </div>`;
-  },
-  tooltip: { followMouse: true }
-};
+  const options = {
+    start: new Date(1000,0,1),
+    end: new Date(2000,11,31),
+    editable: false,
+    template: function(item) {
+      return `<div class="evento ${item.categoria}">
+          <img src="${item.img}" alt="${item.title}" />
+          <span>${item.title}</span>
+        </div>`;
+    },
+    tooltip: { followMouse: true }
+  };
 
-const timeline = new vis.Timeline(container, dataset, options);
+  const timeline = new vis.Timeline(container, dataset, options);
 
-function limpiarTexto(texto) {
-  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-}
-
-function renderizar() {
-  const jesus = document.getElementById("filtro-jesus").checked;
-  const virgen = document.getElementById("filtro-virgen").checked;
-  const santo = document.getElementById("filtro-santo").checked;
-  const busqueda = limpiarTexto(document.getElementById("buscador").value);
-
-  const itemsFiltrados = allData.filter(item => {
-    const categoriaOK = (item.categoria === "Jesus" && jesus) ||
-                        (item.categoria === "Virgen" && virgen) ||
-                        (item.categoria === "Santo" && santo);
-    const textoOK = limpiarTexto(item.title).includes(busqueda);
-    return categoriaOK && textoOK;
-  });
-
-  dataset.clear();
-  dataset.add(itemsFiltrados);
-
-  if(itemsFiltrados.length > 0){
-    timeline.focus(itemsFiltrados[0].id, { animation: { duration: 500 } });
-    timeline.setSelection(itemsFiltrados[0].id);
+  function limpiarTexto(texto) {
+    if (!texto) return "";
+    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   }
-}
 
-// Cargar datos
-fetch("eventos.json")
-  .then(res => res.json())
-  .then(data => {
-    allData = data;
-    dataset.add(allData);
+  // función que muestra el detalle a partir del id del item
+  function mostrarDetalleById(idItem) {
+    const item = dataset.get(idItem);
+    if (!item) return;
 
-    const hash = window.location.hash.substr(1);
-    if(hash){
-      const itemHash = allData.find(i => limpiarTexto(i.title).replace(/\s+/g,'-') === hash);
-      if(itemHash){
-        timeline.focus(itemHash.id, { animation: { duration: 500 } });
-        timeline.setSelection(itemHash.id);
-      }
-    }
-  })
-  .catch(err => console.error("Error cargando eventos:", err));
-
-document.getElementById("filtro-jesus").addEventListener("change", renderizar);
-document.getElementById("filtro-virgen").addEventListener("change", renderizar);
-document.getElementById("filtro-santo").addEventListener("change", renderizar);
-document.getElementById("buscador").addEventListener("input", renderizar);
-
-timeline.on("select", function(props) {
-  if (props.items.length > 0) {
-    const item = dataset.get(props.items[0]);
     document.getElementById("detalle-seleccion").style.display = "block";
     document.getElementById("detalle-title").textContent = item.title;
     document.getElementById("detalle-fecha").textContent = item.start;
 
-    // Combinar imagen + contenido + fuente
     let contenidoHTML = `<img src="${item.img}" alt="${item.title}">${item.content}`;
-    if(item.fuente){
+
+    if (item.fuente) {
       contenidoHTML += `<p><strong>Fuente:</strong> <a href="${item.fuente}" target="_blank">${item.fuente}</a></p>`;
     }
-    // Mostrar PDFs si existen
+
+    // Lista simple de PDFs (icono + nombre bonito) y descarga con nombre limpio
     if (item.pdfs && Array.isArray(item.pdfs) && item.pdfs.length > 0) {
-        contenidoHTML += `<h3 style="margin-top:25px;">📄 Documentos PDF</h3>`;
+      contenidoHTML += `<h3 style="margin-top:25px;">📄 Documentos PDF</h3>`;
+      item.pdfs.forEach((pdf) => {
+        const nombrePDF = pdf.split("/").pop();
+        let nombreLimpio = nombrePDF.replace(/_/g, " ").replace(/\.pdf$/i, "").trim();
+        nombreLimpio = nombreLimpio.replace(/\b\w/g, l => l.toUpperCase());
 
-        item.pdfs.forEach((pdf, index) => {
-            // Obtener nombre del archivo
-            let nombrePDF = pdf.split("/").pop();
-
-            let nombreLimpio = nombrePDF
-                .replace(/_/g, " ")          // reemplazar _ por espacios
-                .replace(/\.pdf$/i, "")      // quitar extensión
-                .trim();
-
-            // Capitalizar cada palabra
-            nombreLimpio = nombreLimpio.replace(/\b\w/g, l => l.toUpperCase());
-
-            contenidoHTML += `
-            <div style="display:flex; align-items:center; margin-bottom:12px;">
-                <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/file.svg?sanitize=true"
-     style="width:40px; margin-right:12px; filter: invert(27%) sepia(93%) saturate(7473%) hue-rotate(354deg) brightness(92%) contrast(113%);">
-                <a href="${pdf}" 
-                  download="${nombreLimpio}.pdf"
-                  style="font-size:18px; font-weight:bold; text-decoration:none; color:#0056b3;">
-                  ${nombreLimpio}
-                </a>
-            </div>
-            `;
-        });
+        contenidoHTML += `
+          <div style="display:flex; align-items:center; margin-bottom:12px;">
+            <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/file.svg?sanitize=true"
+                style="width:40px; margin-right:12px; filter: invert(27%) sepia(93%) saturate(7473%) hue-rotate(354deg) brightness(92%) contrast(113%);">
+            <a href="${pdf}" download="${nombreLimpio}.pdf"
+               style="font-size:18px; font-weight:bold; text-decoration:none; color:#0056b3;">
+               ${nombreLimpio}
+            </a>
+          </div>
+        `;
+      });
     }
+
     document.getElementById("detalle-content").innerHTML = contenidoHTML;
 
-    // QR con hash y mayor tamaño
+    // generar QR para este santo (URL con hash)
     const qrDiv = document.getElementById("detalle-qr");
     qrDiv.innerHTML = "";
     const qrURL = `https://gabrieltherrera612.github.io/Historia-Santos/#${limpiarTexto(item.title).replace(/\s+/g,'-')}`;
-    new QRCode(qrDiv, { text: qrURL, width: 180, height: 180 }); // más grande para mejor calidad
+    new QRCode(qrDiv, { text: qrURL, width: 180, height: 180 });
 
-    // Ocultar teclado en móviles al seleccionar santo
+    // ocultar teclado en móviles
     document.getElementById("buscador").blur();
   }
-});
+
+  function renderizar() {
+    const jesus = document.getElementById("filtro-jesus").checked;
+    const virgen = document.getElementById("filtro-virgen").checked;
+    const santo = document.getElementById("filtro-santo").checked;
+    const busqueda = limpiarTexto(document.getElementById("buscador").value);
+
+    const itemsFiltrados = allData.filter(item => {
+      const categoriaOK = (item.categoria === "Jesus" && jesus) ||
+                          (item.categoria === "Virgen" && virgen) ||
+                          (item.categoria === "Santo" && santo);
+      const textoOK = limpiarTexto(item.title).includes(busqueda);
+      return categoriaOK && textoOK;
+    });
+
+    dataset.clear();
+    dataset.add(itemsFiltrados);
+
+    if (itemsFiltrados.length > 0) {
+      // centrar y seleccionar primer resultado
+      const primerId = itemsFiltrados[0].id;
+      timeline.focus(primerId, { animation: { duration: 500 } });
+      timeline.setSelection(primerId);
+
+      // mostrar detalle inmediatamente
+      mostrarDetalleById(primerId);
+    } else {
+      // ocultar panel si no hay resultados
+      document.getElementById("detalle-seleccion").style.display = "none";
+    }
+  }
+
+  // Cargar datos
+  fetch("eventos.json")
+    .then(res => res.json())
+    .then(data => {
+      allData = data;
+      dataset.add(allData);
+
+      // Si hay hash en la URL (por QR), buscar el item y mostrarlo
+      const hash = window.location.hash.substr(1);
+      if (hash) {
+        const itemHash = allData.find(i => limpiarTexto(i.title).replace(/\s+/g,'-') === hash);
+        if (itemHash) {
+          timeline.focus(itemHash.id, { animation: { duration: 500 } });
+          timeline.setSelection(itemHash.id);
+          mostrarDetalleById(itemHash.id);
+        }
+      }
+    })
+    .catch(err => console.error("Error cargando eventos:", err));
+
+  // listeners filtro + buscador
+  document.getElementById("filtro-jesus").addEventListener("change", renderizar);
+  document.getElementById("filtro-virgen").addEventListener("change", renderizar);
+  document.getElementById("filtro-santo").addEventListener("change", renderizar);
+  document.getElementById("buscador").addEventListener("input", renderizar);
+
+  // cuando el usuario selecciona en el timeline (clic)
+  timeline.on("select", function(props) {
+    if (props.items.length > 0) {
+      // props.items[0] puede ser id o el item id (vis usa id)
+      const idSeleccion = props.items[0];
+      mostrarDetalleById(idSeleccion);
+    }
+  });
 </script>
 
 </body>
