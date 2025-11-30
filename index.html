@@ -223,6 +223,35 @@ timeline.on("select", function(props) {
     if(item.fuente){
       contenidoHTML += `<p><strong>Fuente:</strong> <a href="${item.fuente}" target="_blank">${item.fuente}</a></p>`;
     }
+    // Mostrar PDFs si existen
+    if (item.pdfs && Array.isArray(item.pdfs) && item.pdfs.length > 0) {
+        contenidoHTML += `<h3 style="margin-top:25px;">📄 Documentos PDF</h3>`;
+
+        item.pdfs.forEach((pdf, index) => {
+            // Obtener nombre del archivo
+            let nombrePDF = pdf.split("/").pop();
+
+            let nombreLimpio = nombrePDF
+                .replace(/_/g, " ")          // reemplazar _ por espacios
+                .replace(/\.pdf$/i, "")      // quitar extensión
+                .trim();
+
+            // Capitalizar cada palabra
+            nombreLimpio = nombreLimpio.replace(/\b\w/g, l => l.toUpperCase());
+
+            contenidoHTML += `
+            <div style="display:flex; align-items:center; margin-bottom:12px;">
+                <img src="https://raw.githubusercontent.com/feathericons/feather/master/icons/file.svg?sanitize=true"
+     style="width:40px; margin-right:12px; filter: invert(27%) sepia(93%) saturate(7473%) hue-rotate(354deg) brightness(92%) contrast(113%);">
+                <a href="${pdf}" 
+                  download="${nombreLimpio}.pdf"
+                  style="font-size:18px; font-weight:bold; text-decoration:none; color:#0056b3;">
+                  ${nombreLimpio}
+                </a>
+            </div>
+            `;
+        });
+    }
     document.getElementById("detalle-content").innerHTML = contenidoHTML;
 
     // QR con hash y mayor tamaño
